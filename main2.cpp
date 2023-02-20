@@ -12,7 +12,7 @@ void add(int &newID, int amount, Node** &hashtable, int &arraySize);
 int hashfunction(Node* n, int arraySize);
 void getLine(fstream& file, int num, char* line);
 void print(Node** hashtable, int arraySize);
-void deleet(int arraySize, Node** hashtable);
+void deleet (Node* n, int id);
 void rehash(int &arraySize, Node** &hashtable);
 void add_manual(int &newID, int &arraySize, Node** &hashtable);
 
@@ -29,7 +29,7 @@ int main() {
     hashtable[i] = NULL;
   }
   while (cont == true) {
-    cout << "add or print?: "; 
+    cout << "Add manually, generate, print, delete, or quit? (add/generate/print/delete/quit): "; 
     cin >> input;
     cin.ignore();
     if (strcmp(input, "generate") == 0) {
@@ -44,37 +44,28 @@ int main() {
     else if (strcmp(input, "print")==0) {
       print(hashtable, arraySize);
     }
-
-
     else if (strcmp(input, "delete")==0) {
       int id;
       cout << "ID: ";
       cin >> id;
       for (int i = 0; i < arraySize; ++i) {
-        if (head == NULL) {
-          cout << "Empty list. Nothing to delete" << endl;
-        }
-        else if (id == head->getStudent()->getID()) {//when the first one is being deleted, special case since head is being changed.
-            Node* temp = head;
-            if (head->getNext() == NULL) {//there is only one node
-                head = NULL;
-            }
-            else {
-                cout << "else  changing head" << endl;
-                head = head->getNext();
-                delete temp;
-            }
+        Node* n = hashtable[i];
+        if (id == hashtable[i]->getStudent()->getID()) {//when the first one is being deleted, special case since head is being changed.
+          Node* temp = hashtable[i];
+          if (n->getNext() == NULL) {//there is only one node
+            hashtable[i] = NULL;
+            delete hashtable[i];
+          }
+          else {
+            hashtable[i] = hashtable[i]->getNext();
+            delete temp;
+          }
         }
         else {
-            deleet(head, id);
+          deleet(hashtable[i], id);
         }
       }
-      
-      deleet(arraySize, hashtable);
-    }
-
-
-
+    } 
     else if (strcmp(input, "quit")==0) {
       cont = false;
     }
@@ -98,7 +89,6 @@ void print(Node** hashtable, int arraySize) {
     }
     cout << endl;
   }
-  cout << "total nodes printed: " << total << endl;
 }
 
 void getLine(fstream& file, int num, char* line){//had to put this stuff outside the generate function because instead of starting from line 1 in started from the previous line
@@ -112,7 +102,7 @@ void getLine(fstream& file, int num, char* line){//had to put this stuff outside
 }
 
 void add_manual(int &newID, int &arraySize, Node** &hashtable) {
-  int count = 1;
+  int count = 0;
   ++newID;
   char newfirst[20];
   char newlast[20];
@@ -183,7 +173,6 @@ void add(int &newID, int amount, Node** &hashtable, int &arraySize) {//make a ra
       hashtable[key] = newnode;
     }
     else {
-      cout << "NOT NULL" << endl;
       while (n!= NULL) {
         ++count;
         if (n->getNext() == NULL) {
@@ -203,7 +192,6 @@ void add(int &newID, int amount, Node** &hashtable, int &arraySize) {//make a ra
 }
 
 void rehash(int &arraySize, Node** &hashtable) {
-  cout << "1. in rehash" << endl;
   arraySize = arraySize*2;
   Node** newtable = new Node*[arraySize];
   for (int i = 0; i < arraySize; ++i) {//set all slots in newtable to null
@@ -211,23 +199,17 @@ void rehash(int &arraySize, Node** &hashtable) {
   }
   //node does not get added to the newtable if it is not the first node in the array slot of hashtable
   for (int i = 0; i < arraySize/2; ++i) {//for every slot in hashtable array
-    //cout << "2. in for lop" << endl;
     Node* nHashtable = hashtable[i];//nHashtable is the ith sloth in hashtable
     while (nHashtable != NULL) {//while that node in the ith slot is not null
       int key = hashfunction(nHashtable, arraySize);
       Node* nNewtable = newtable[key];//node pointer nNewtable is the first node at the key slot in newtable
-      //cout << "3. in while loop" << endl;
       if (nNewtable == NULL) {//it is the first one
-        //cout << "5" << endl;
         newtable[key] = nHashtable; //put the node from hashtable into newtable
         newtable[key]->setNext(NULL);
       }
       else{//not the first 
-        //cout << "6" << endl;
         while (nNewtable != NULL) {
-          //cout << "7" << endl;
           if (nNewtable->getNext() == NULL) {
-            //cout << "8" << endl;
             nNewtable->setNext(nHashtable);
             nNewtable->getNext()->setNext(NULL);
             break;
@@ -240,50 +222,19 @@ void rehash(int &arraySize, Node** &hashtable) {
   }
 }
 
-void deleet (int arraySize, Node** hashtable) {
-  int input;
-  cout << "ID: ";
-  cin >> input;
-  for (int i = 0; i < arraySize; ++i) {
-    cout << i << endl;
-    Node* n = hashtable[i];
-    if (n != NULL) {
-      if (n->getStudent()->getID() == input) {//head is the id
-        cout << "2" << endl;
-        Node* temp = n;
-        if (n->getNext() == NULL) {
-          cout << "3" << endl;
-          Node* temp = n;
-          n = NULL;
-          delete temp;
-        }
-      else {
-        hashtable[i] = n->getNext();
-        delete temp;
-        break;
-      }
-      
-      }
-    }
-    
-    while (n != NULL) {
-      if (n->getNext()->getStudent()->getID() == input) {
-        Node* temp = n->getNext();
-        if (n->getNext()->getNext() == NULL) {
-          n->setNext(NULL);
-          delete temp;
-          break;
-        }
-        else {
-          n->setNext(n->getNext()->getNext());
-          delete temp;
-          break;
-        }
-
-      }
-      n = n->getNext();
-    }
+void deleet (Node* n, int id) {
+  Node* h = n;
+  if (id == n->getNext()->getStudent()->getID()) {//if NEXT node is equal
+    Node* temp = n->getNext();
+    n->setNext(n->getNext()->getNext());
+    //n->next = n->next->next;
+    delete temp;
   }
+  else {
+    n = n->getNext();
+    deleet(n, id);
+  }
+
 }
 
 int hashfunction(Node* n, int arraySize) {//how to get the key
