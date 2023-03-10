@@ -7,6 +7,13 @@
 #include "student.h"
 #include "node.h"
 using namespace std;
+/*
+Author: Min Kim
+Program Description: This is a program that will store the first name, last name, gpa, and id of students
+in a hash table that grows as more nodes are added. It can generate random student names and also take 
+manual inputs.
+Date: 3/9/22
+*/
 
 void add(int &newID, int amount, Node** &hashtable, int &arraySize);
 int hashfunction(Node* n, int arraySize);
