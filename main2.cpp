@@ -1,4 +1,5 @@
 #include <iostream>
+#include <bits/stdc++.h>
 #include <fstream>
 #include <cctype>
 #include <cstring>
@@ -19,7 +20,7 @@ void add(int &newID, int amount, Node** &hashtable, int &arraySize);
 int hashfunction(Node* n, int arraySize);
 void getLine(fstream& file, int num, char* line);
 void print(Node** hashtable, int arraySize);
-void deleet (Node* n, int id);
+void deleet (Node** &hashtable, int arraySize, int id);
 void rehash(int &arraySize, Node** &hashtable);
 void add_manual(int &newID, int &arraySize, Node** &hashtable);
 
@@ -52,27 +53,12 @@ int main() {
       print(hashtable, arraySize);
     }
     else if (strcmp(input, "delete")==0) {
-      int id;
+      int id = 0;
+      int iterations = 0;
       cout << "ID: ";
       cin >> id;
-      for (int i = 0; i < arraySize; ++i) {
-        Node* n = hashtable[i];
-        if (id == hashtable[i]->getStudent()->getID()) {//when the first one is being deleted, special case since head is being changed.
-          Node* temp = hashtable[i];
-          if (n->getNext() == NULL) {//there is only one node
-            hashtable[i] = NULL;
-            delete hashtable[i];
-          }
-          else {
-            hashtable[i] = hashtable[i]->getNext();
-            delete temp;
-          }
-        }
-        else {
-          deleet(hashtable[i], id);
-        }
-      }
-    } 
+      deleet(hashtable, arraySize, id);
+    }
     else if (strcmp(input, "quit")==0) {
       cont = false;
     }
@@ -227,21 +213,40 @@ void rehash(int &arraySize, Node** &hashtable) {
       nHashtable = nHashtable->getNext();
     }
   }
+  delete[] hashtable;
+  hashtable = newtable;
 }
 
-void deleet (Node* n, int id) {
-  Node* h = n;
-  if (id == n->getNext()->getStudent()->getID()) {//if NEXT node is equal
-    Node* temp = n->getNext();
-    n->setNext(n->getNext()->getNext());
-    //n->next = n->next->next;
-    delete temp;
+void deleet (Node** &hashtable, int arraySize, int id) {
+  for (int i = 0; i < arraySize; ++i) {
+    if (hashtable[i] != NULL) {
+      if (id == hashtable[i]->getStudent()->getID()) {//if first node is equal
+        if (hashtable[i]->getNext() == NULL) {//just delete 
+          hashtable[i] = NULL;
+        }
+        else {
+          hashtable[i] = hashtable[i]->getNext();
+        }
+      return;
+      }
+    }
   }
-  else {
-    n = n->getNext();
-    deleet(n, id);
+  for (int i = 0; i < arraySize; ++i) {
+    Node* n = hashtable[i];
+    if (hashtable[i] != NULL) {
+      while (n->getNext() != NULL) {
+        if (id == n->getNext()->getStudent()->getID()) {//if NEXT node is equal, separate because i have to reconnect
+          Node* temp = n->getNext();
+          n->setNext(n->getNext()->getNext());
+          delete temp;
+          return;
+        }
+        else {
+          n = n->getNext();
+        }
+      }
+    }
   }
-
 }
 
 int hashfunction(Node* n, int arraySize) {//how to get the key
